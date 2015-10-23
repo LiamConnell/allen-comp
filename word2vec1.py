@@ -3,7 +3,16 @@ import pandas as pd
 from wikiapi import WikiApi
 wiki = WikiApi()
 import re
+from gensim.models import Word2Vec
 #import word2vec
+
+start = time.time()
+model = Word2Vec.load_word2vec_format('/Users/liamconnell/Downloads/GoogleNews-vectors-negative300.bin', binary = True)
+lap1 = time.time()
+print('data gathered: %s' % (lap1 - start))
+
+
+
 
 def get_longword(s):
     return max(re.split(' ', s), key=len)
@@ -14,6 +23,16 @@ def get_wiki(k):
         return wiki.get_article(wiki.find(k)[0]).content
     except:
         return []
+
+
+
+
+
+
+
+
+
+
 
 
 def overlap(answw, words):
@@ -54,21 +73,22 @@ def convert(g):
 
 start = time.time()
 #data  = pd.read_csv('../input/training_set.tsv', '\t')
-data  = pd.read_csv('../input/validation_set.tsv', '\t')
+#data  = pd.read_csv('../input/validation_set.tsv', '\t')
+data = pd.read_csv('../input/validation_set_mod.csv')
 lap1 = time.time()
 print('data gathered: %s' % (lap1 - start))
 
 
-data['keyword'] =data['question'].apply(get_longword)
-lap2 = time.time()
-print('longword: %d' % (lap2 - lap1))
+#data['keyword'] =data['question'].apply(get_longword)
+#lap2 = time.time()
+#print('longword: %d' % (lap2 - lap1))
 
-data['words'] = data.keyword.apply(get_wiki)
+#data['words'] = data.keyword.apply(get_wiki)
 lap3 = time.time()
-print('get wiki: %d' % (lap3 - lap2))
+#print('get wiki: %d' % (lap3 - lap2))
 
 #save dataset with wiki
-data.to_csv('../input/validation_set_mod.csv')
+#data.to_csv('../input/validation_set_mod.csv')
 
 
 data['comp'] = data.apply(compete, axis = 1)
