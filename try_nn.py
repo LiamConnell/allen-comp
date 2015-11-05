@@ -95,7 +95,17 @@ def get_winner_from_avecs(row):
 		
 
 
-
+        
+        
+def get_tvec(row):
+    if row['correctAnswer'] == 'A':
+        return row['aavec']
+    if row['correctAnswer'] == 'B':
+        return row['bavec']
+    if row['correctAnswer'] == 'C':
+        return row['cavec']
+    if row['correctAnswer'] == 'D':
+        return row['davec']
 
 def overlap(answw, words):
     count = 0
@@ -134,9 +144,9 @@ def convert(g):
 
 ccount = 0
 start = time.time()
-#data  = pd.read_csv('../input/training_set.tsv', '\t')
+data  = pd.read_csv('../input/training_set.tsv', '\t')
 #data  = pd.read_csv('../input/validation_set.tsv', '\t')
-data = pd.read_csv('../input/validation_set_mod2.csv')
+#data = pd.read_csv('../input/validation_set_mod2.csv')
 lap1 = time.time()
 print('data gathered: %s' % (lap1 - start))
 
@@ -153,11 +163,29 @@ lap3 = time.time()
 #data.to_csv('../input/validation_set_mod2.csv')
 
 data['qvec'] = data.words.apply(get_avg_vec)
+
+data['aavec'] = data['answerA'].apply(get_avg_vec)
+data['bavec'] = data['answerB'].apply(get_avg_vec)
+data['cavec'] = data['answerC'].apply(get_avg_vec)
+data['davec'] = data['answerD'].apply(get_avg_vec)
+
+data['tvec'] = data.apply(get_tvec, axis = 1)
+
 lapa = time.time()
 ccount = 0
 print('get qvec: %d' % (lapa - lap3))
 print(ccount)
 data['closest_avec'] = data.apply(get_winner_from_avecs, axis=1)
+
+
+
+
+
+
+
+
+
+
 
 #data['comp'] = data.apply(compete, axis = 1)
 #lap4 = time.time()
