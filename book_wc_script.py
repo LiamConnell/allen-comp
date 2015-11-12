@@ -21,12 +21,12 @@ def remove_punctuation(s):
 #TODO: fix this or dont use
 def get_longword(s, n):
     s = re.split(' ', s)
-    s =  [w for w in s if not w in stops]
+    s =  [w for w in s if not w in stop]
     return heapq.nlargest(n, s, key=len)
 
 def get_rarewrd(s):
     s = re.split(' ', s)
-    s =  [w for w in s if not w in stops]
+    s =  [w for w in s if not w in stop]
     freqs = [words.count(x) for x in s]
     dd= [i for i,x in enumerate(freqs) if x == min(freqs)]
     return [s[dd[0]]]
