@@ -17,6 +17,7 @@ from nltk.corpus import stopwords
 def remove_punctuation(s):
     exclude = set(string.punctuation)
     s = ''.join(ch for ch in s if ch not in exclude)
+    s = s.lower()
     return s
 #TODO: fix this or dont use
 def get_longword(s, n):
@@ -178,6 +179,7 @@ stop = stopwords.words('english')
 file = open('../input/Concepts.txt', 'r')
 words = list(file.read().split())
 words = [word.strip(string.punctuation) for word in words]
+words = [x.lower() for x in words]
 words = [w for w in words if not w in stop]
 
 data.question = data.question.apply(remove_punctuation)
