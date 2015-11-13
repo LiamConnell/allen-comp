@@ -25,12 +25,33 @@ def get_longword(s, n):
     s =  [w for w in s if not w in stop]
     return heapq.nlargest(n, s, key=len)
 
+def get_uniqwds(row, ans):
+    answerwords  = []
+    for col in row['answerA':'answerD']:
+        col = re.split(' ', col)
+        for c in col:
+            answerwords.append(c)
+    if ans == 'a':
+        col = row['answerA']
+    if ans == 'b':
+        col = row['answerB']
+    if ans == 'c':
+        col = row['answerC']
+    if ans == 'd':
+        col = row['answerD']
+    col = re.split(' ', col)
+    uniq = [word for word in col if answerwords.count(word) == 1]
+    return ' '.join(uniq)
+
 def get_rarewrd(s):
     s = re.split(' ', s)
     s =  [w for w in s if not w in stop]
     freqs = [words.count(x) for x in s]
     dd= [i for i,x in enumerate(freqs) if x == min(freqs)]
-    return [s[dd[0]]]
+    try:
+        return [s[dd[0]]]
+    except:
+        return []
 
 #TODO: make this work with one word/period
 def get_avg_vec(words):
@@ -144,13 +165,18 @@ def word_clusters(row):
             print(answer[0])
             waka = 0
             for x in spots:
-                wd = words[x-1000:x+1000]
+                wd = words[x-500:x+500]
                 ct = wd.count(answer[0])
                 waka = (waka + ct)#/(words.count(answer[0])/2)    #trying to skew for 
             kkk.append(waka)
         mx = max(kkk)
         print(kkk)
         best = [i for i, j in enumerate(kkk) if j == mx]
+        print(row['correctAnswer'])
+        print(best)
+        if len(best) > 1:
+            best = best[0]
+            
         if best == [0]:
             return 'A'
         if best == [1]:
@@ -169,9 +195,10 @@ def word_clusters(row):
     ##############################
     ##############################
     ##############################
-    
-#data  = pd.read_csv('../input/training_set.tsv', '\t')
-data  = pd.read_csv('../input/validation_set.tsv', '\t')
+gbg = 'tail 500'
+print(gbg)
+data  = pd.read_csv('../input/training_set.tsv', '\t').tail(500)
+#data  = pd.read_csv('../input/validation_set.tsv', '\t').head(20)
 
 stop = stopwords.words('english')
 
@@ -188,15 +215,28 @@ data.answerB = data.answerB.apply(remove_punctuation)
 data.answerC = data.answerC.apply(remove_punctuation)
 data.answerD = data.answerD.apply(remove_punctuation)
 
-data['keyword'] =data['question'].apply(get_longword, args = (4,))
+data['keyword'] =data['question'].apply(get_longword, args = (5,))
 
-data['akeyword'] =data['answerA'].apply(get_rarewrd)
-data['bkeyword'] =data['answerB'].apply(get_rarewrd)
-data['ckeyword'] =data['answerC'].apply(get_rarewrd)
-data['dkeyword'] =data['answerD'].apply(get_rarewrd)
+data['auniq'] =data.apply(get_uniqwds, args = ('a',), axis = 1)
+data['buniq'] =data.apply(get_uniqwds, args = ('b',), axis = 1)
+data['cuniq'] =data.apply(get_uniqwds, args = ('c',), axis = 1)
+data['duniq'] =data.apply(get_uniqwds, args = ('d',), axis = 1)
+
+
+
+data['akeyword'] =data['auniq'].apply(get_rarewrd)
+data['bkeyword'] =data['buniq'].apply(get_rarewrd)
+data['ckeyword'] =data['cuniq'].apply(get_rarewrd)
+data['dkeyword'] =data['duniq'].apply(get_rarewrd)
 
 data['guess'] = data.apply(word_clusters, axis = 1)
 
-sample = pd.read_csv('../input/sample_submission.csv')
-sample['correctAnswer'] = data['guess']
-sample.to_csv('../output/word_cluster_001.csv', index=False)
+print(sum(data['guess'] ==data['correctAnswer']))
+print(len(data))
+
+print(sum(data['guess'] ==data['correctAnswer'])/len(data))
+print(gbg)
+
+#sample = pd.read_csv('../input/sample_submission.csv')
+#sample['correctAnswer'] = data['guess']
+#sample.to_csv('../output/word_cluster_001.csv', index=False)
