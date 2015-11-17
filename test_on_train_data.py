@@ -95,12 +95,15 @@ def convert_back2arrays(s):
 def run_through_theta(v):
     return v.dot(theta.as_matrix())
 
+def run_through_net(v):
+    return net.activate(v)
+
 def get_winner_from_avecs(row):
 	try:	
 		dists = []
-		for col in row['answerA':'answerD']:
+		for col in row['aavec':'davec']:
 		#TODO: if 'not' in words: 1-avec
-			avec = get_avg_vec(col)
+			avec = convert_back2arrays(col)
 			#if 'not' in re.split(' ',col):
 			#	avec = 1-avec
 			#	print('NOT')
@@ -204,6 +207,7 @@ def word_clusters(row):
 #########################
 #########################
 
+train = True
 data  = pd.read_csv('../input/training_set_(add_cols)n001.csv')
 
 data.qvec = data.qvec.apply(convert_back2arrays)
@@ -217,14 +221,16 @@ data = data.iloc[jsub]
 qarray = np.array([data.qvec[i] for i in data.index])
 tarray = np.array([data.tvec[i] for i in data.index])
 
-net = buildNetwork(300, 3, 300)#, bias=True, hiddenclass=TanhLayer)
+net = NetworkReader.readFrom('../input/NN(.05-500-10)_001.xml') 
+data['pvec'] = data.qvec.apply(run_through_net)
 
-ds = SupervisedDataSet( 300, 300 )
-ds.setField( 'input', qarray )
-ds.setField( 'target', tarray )
+data['predict'] = data.apply(get_winner_from_avecs, axis = 1)
 
-trainer = BackpropTrainer( net, ds )
+if train == True:
+    print(sum(data['predict'] ==data['correctAnswer'])/len(data))
+else:
+    sample = pd.read_csv('../input/sample_submission.csv')
+    sample['correctAnswer'] = data['predict']
+    sample.to_csv('../output/NN001.csv', index=False)
+    
 
-trainer.trainUntilConvergence( verbose = True, validationProportion = 0.05, maxEpochs = 500, continueEpochs = 10 )
-
-NetworkWriter.writeToFile(net, '../input/NN(.05-500-10)_001.xml')

@@ -12,9 +12,26 @@ import string
 
 data  = pd.read_csv('../input/training_set.tsv', '\t')
 datav  = pd.read_csv('../input/validation_set.tsv', '\t')
-out_path = '../input/training_set_(add_cols).csv'
-out_pathv = '../input/validation_set_(add_cols).csv'
+out_path = '../input/training_set_(add_cols)n001.csv'
+out_pathv = '../input/validation_set_(add_cols)n001.csv'
 
+def get_uniqwds(row, ans):
+    answerwords  = []
+    for col in row['answerA':'answerD']:
+        col = re.split(' ', col)
+        for c in col:
+            answerwords.append(c)
+    if ans == 'a':
+        col = row['answerA']
+    if ans == 'b':
+        col = row['answerB']
+    if ans == 'c':
+        col = row['answerC']
+    if ans == 'd':
+        col = row['answerD']
+    col = re.split(' ', col)
+    uniq = [word for word in col if answerwords.count(word) == 1]
+    return ' '.join(uniq)
 
 def remove_punctuation(s):
     exclude = set(string.punctuation)
@@ -93,7 +110,7 @@ def gradient_descent(data,theta, alpha = .01, iter = 4):
     
 #####function:    
 start = time.time()
-model = Word2Vec.load_word2vec_format('~/GoogleNews-vectors-negative300.bin', binary = True)
+model = Word2Vec.load_word2vec_format('/Users/liamconnell/GoogleNews-vectors-negative300.bin', binary = True)
 lap1 = time.time()
 print('data gathered: %s' % (lap1 - start))
 
@@ -114,11 +131,16 @@ def prep_data(data, train, out_path):
     data['keyword'] =data['question'].apply(get_longword, args = (5,))
     data['qvec'] = data.keyword.apply(get_avg_vec) 
 
+    data['auniq'] =data.apply(get_uniqwds, args = ('a',), axis = 1)
+    data['buniq'] =data.apply(get_uniqwds, args = ('b',), axis = 1)
+    data['cuniq'] =data.apply(get_uniqwds, args = ('c',), axis = 1)
+    data['duniq'] =data.apply(get_uniqwds, args = ('d',), axis = 1)
+
     #answer prep
-    data['akeyword'] =data['answerA'].apply(get_longword, args = (1,))
-    data['bkeyword'] =data['answerB'].apply(get_longword, args = (1,))
-    data['ckeyword'] =data['answerC'].apply(get_longword, args = (1,))
-    data['dkeyword'] =data['answerD'].apply(get_longword, args = (1,))
+    data['akeyword'] =data['auniq'].apply(get_longword, args = (1,))
+    data['bkeyword'] =data['buniq'].apply(get_longword, args = (1,))
+    data['ckeyword'] =data['cuniq'].apply(get_longword, args = (1,))
+    data['dkeyword'] =data['duniq'].apply(get_longword, args = (1,))
 
     data['aavec'] = data['akeyword'].apply(get_avg_vec)
     data['bavec'] = data['bkeyword'].apply(get_avg_vec)
@@ -136,7 +158,7 @@ def prep_data(data, train, out_path):
     
 prep_data(data, True, out_path)
 print('training done, going to validation')
-prep_data(datav, True, out_pathv)
+prep_data(datav, False, out_pathv)
 print('all good')
 
 
