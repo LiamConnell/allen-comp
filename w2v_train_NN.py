@@ -16,8 +16,8 @@ from pybrain.tools.shortcuts import buildNetwork
 from pybrain.datasets import SupervisedDataSet
 from pybrain.supervised.trainers import BackpropTrainer
 
-from pybrain.tools.xml.networkwriter import NetworkWriter
-from pybrain.tools.xml.networkreader import NetworkReader
+from pybrain.tools.customxml.networkwriter import NetworkWriter
+from pybrain.tools.customxml.networkreader import NetworkReader
 
 def remove_punctuation(s):
     exclude = set(string.punctuation)
