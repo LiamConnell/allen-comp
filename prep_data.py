@@ -10,11 +10,10 @@ import numpy as np
 import heapq
 import string
 
-#data  = pd.read_csv('../input/training_set.tsv', '\t')
-data  = pd.read_csv('../input/validation_set.tsv', '\t')
-train = False
-#out_path = '../input/training_set_(add_cols).csv'
-out_path = '../input/validation_set_(add_cols).csv'
+data  = pd.read_csv('../input/training_set.tsv', '\t')
+datav  = pd.read_csv('../input/validation_set.tsv', '\t')
+out_path = '../input/training_set_(add_cols).csv'
+out_pathv = '../input/validation_set_(add_cols).csv'
 
 
 def remove_punctuation(s):
@@ -94,7 +93,7 @@ def gradient_descent(data,theta, alpha = .01, iter = 4):
     
 #####function:    
 start = time.time()
-model = Word2Vec.load_word2vec_format('/Users/liamconnell/Downloads/GoogleNews-vectors-negative300.bin', binary = True)
+model = Word2Vec.load_word2vec_format('~/GoogleNews-vectors-negative300.bin', binary = True)
 lap1 = time.time()
 print('data gathered: %s' % (lap1 - start))
 
@@ -103,35 +102,42 @@ index2word_set = set(model.index2word)
 num_features = 300
 
 
-###REMOVE PUNCTUATION###
-data.question = data.question.apply(remove_punctuation)
-data.answerA = data.answerA.apply(remove_punctuation)
-data.answerB = data.answerB.apply(remove_punctuation)
-data.answerC = data.answerC.apply(remove_punctuation)
-data.answerD = data.answerD.apply(remove_punctuation)
+def prep_data(data, train, out_path):
+    ###REMOVE PUNCTUATION###
+    data.question = data.question.apply(remove_punctuation)
+    data.answerA = data.answerA.apply(remove_punctuation)
+    data.answerB = data.answerB.apply(remove_punctuation)
+    data.answerC = data.answerC.apply(remove_punctuation)
+    data.answerD = data.answerD.apply(remove_punctuation)
 
-#question prep
-data['keyword'] =data['question'].apply(get_longword, args = (5,))
-data['qvec'] = data.keyword.apply(get_avg_vec) 
+    #question prep
+    data['keyword'] =data['question'].apply(get_longword, args = (5,))
+    data['qvec'] = data.keyword.apply(get_avg_vec) 
 
-#answer prep
-data['akeyword'] =data['answerA'].apply(get_longword, args = (1,))
-data['bkeyword'] =data['answerB'].apply(get_longword, args = (1,))
-data['ckeyword'] =data['answerC'].apply(get_longword, args = (1,))
-data['dkeyword'] =data['answerD'].apply(get_longword, args = (1,))
+    #answer prep
+    data['akeyword'] =data['answerA'].apply(get_longword, args = (1,))
+    data['bkeyword'] =data['answerB'].apply(get_longword, args = (1,))
+    data['ckeyword'] =data['answerC'].apply(get_longword, args = (1,))
+    data['dkeyword'] =data['answerD'].apply(get_longword, args = (1,))
 
-data['aavec'] = data['akeyword'].apply(get_avg_vec)
-data['bavec'] = data['bkeyword'].apply(get_avg_vec)
-data['cavec'] = data['ckeyword'].apply(get_avg_vec)
-data['davec'] = data['dkeyword'].apply(get_avg_vec)
+    data['aavec'] = data['akeyword'].apply(get_avg_vec)
+    data['bavec'] = data['bkeyword'].apply(get_avg_vec)
+    data['cavec'] = data['ckeyword'].apply(get_avg_vec)
+    data['davec'] = data['dkeyword'].apply(get_avg_vec)
 
-if train == True:
-    tvec = []
-    for i in range(len(data)):
-        tvec.append(get_tvec(data.iloc[i,:]))
-    data['tvec'] = tvec
+    if train == True:
+        tvec = []
+        for i in range(len(data)):
+            tvec.append(get_tvec(data.iloc[i,:]))
+        data['tvec'] = tvec
+
+    data.to_csv(out_path)
+
     
-data.to_csv(out_path)
+prep_data(data, True, out_path)
+print('training done, going to validation')
+prep_data(datav, True, out_pathv)
+print('all good')
 
 
 #theta = pd.read_csv('../input/qkeywd_theta_50-a_e-10.csv').as_matrix()
