@@ -5,6 +5,7 @@ wiki = WikiApi()
 import re
 from gensim.models import Word2Vec
 #import word2vec
+from scipy.spatial.distance import euclidean
 from scipy.spatial.distance import cosine
 import numpy as np
 import heapq
@@ -114,7 +115,8 @@ def get_winner_from_avecs(row):
 			if  sum(np.isfinite(row['pvec'])) < 300:
 				print('pvec')
 				print(row['pvec'])
-			dist = cosine(avec, row['pvec'])
+		#	dist = cosine(avec, row['pvec'])
+			dist = euclidean(avec, row['pvec'])
 			dists.append(dist)
 		m = np.nanmin(dists)
 		best = [i for i, j in enumerate(dists) if j == m]
@@ -207,30 +209,38 @@ def word_clusters(row):
 #########################
 #########################
 
-train = True
-data  = pd.read_csv('../input/training_set_(add_cols)n001.csv')
 
-data.qvec = data.qvec.apply(convert_back2arrays)
-data.tvec = data.tvec.apply(convert_back2arrays)
-
-isub = [len(data.tvec[i]) == 300 for i in data.index]
-data = data.iloc[isub]
-jsub = [len(data.qvec[i]) == 300 for i in data.index]
-data = data.iloc[jsub]
-
-qarray = np.array([data.qvec[i] for i in data.index])
-tarray = np.array([data.tvec[i] for i in data.index])
-
-net = NetworkReader.readFrom('../input/NN(.05-500-10)_001.xml') 
-data['pvec'] = data.qvec.apply(run_through_net)
-
-data['predict'] = data.apply(get_winner_from_avecs, axis = 1)
-
-if train == True:
-    print(sum(data['predict'] ==data['correctAnswer'])/len(data))
-else:
-    sample = pd.read_csv('../input/sample_submission.csv')
-    sample['correctAnswer'] = data['predict']
-    sample.to_csv('../output/NN001.csv', index=False)
+def main(train):
     
+    if train == True:
+        data  = pd.read_csv('../input/training_set_(add_cols)n001.csv')
+    else:
+        data  = pd.read_csv('../input/validation_set_(add_cols)n001.csv')
 
+    data.qvec = data.qvec.apply(convert_back2arrays)
+    if train ==True:
+        data.tvec = data.tvec.apply(convert_back2arrays)
+
+        isub = [len(data.tvec[i]) == 300 for i in data.index]
+        data = data.iloc[isub]
+    jsub = [len(data.qvec[i]) == 300 for i in data.index]
+    data = data.iloc[jsub]
+
+    qarray = np.array([data.qvec[i] for i in data.index])
+    if train == True:
+        tarray = np.array([data.tvec[i] for i in data.index])
+
+    net = NetworkReader.readFrom('../input/NN(.05-500-10)_001.xml') 
+    data['pvec'] = data.qvec.apply(run_through_net)
+
+    data['predict'] = data.apply(get_winner_from_avecs, axis = 1)
+
+    if train == True:
+        print(sum(data['predict'] ==data['correctAnswer'])/len(data))
+    else:
+        sample = pd.read_csv('../input/sample_submission.csv')
+        sample['correctAnswer'] = data['predict']
+        sample.to_csv('../output/NN001.csv', index=False)
+
+if __name__ == '__main__':
+    main()

@@ -15,6 +15,9 @@ datav  = pd.read_csv('../input/validation_set.tsv', '\t')
 out_path = '../input/training_set_(add_cols)n001.csv'
 out_pathv = '../input/validation_set_(add_cols)n001.csv'
 
+def get_unit_vec(v):
+    return v/np.linalg.norm(v)
+
 def get_uniqwds(row, ans):
     answerwords  = []
     for col in row['answerA':'answerD']:
@@ -105,18 +108,7 @@ def gradient_descent(data,theta, alpha = .01, iter = 4):
         cost_hist.append(cost)
     print(cost_hist)
     return theta, cost_hist
-    
-    
-    
-#####function:    
-start = time.time()
-model = Word2Vec.load_word2vec_format('/Users/liamconnell/GoogleNews-vectors-negative300.bin', binary = True)
-lap1 = time.time()
-print('data gathered: %s' % (lap1 - start))
 
-
-index2word_set = set(model.index2word)
-num_features = 300
 
 
 def prep_data(data, train, out_path):
@@ -147,20 +139,39 @@ def prep_data(data, train, out_path):
     data['cavec'] = data['ckeyword'].apply(get_avg_vec)
     data['davec'] = data['dkeyword'].apply(get_avg_vec)
 
+    data['qvec'] = data['qvec'].apply(get_unit_vec)
+
     if train == True:
         tvec = []
         for i in range(len(data)):
             tvec.append(get_tvec(data.iloc[i,:]))
-        data['tvec'] = tvec
+            data['tvec'] = tvec
 
-    data.to_csv(out_path)
+            data.to_csv(out_path)
 
     
-prep_data(data, True, out_path)
-print('training done, going to validation')
-prep_data(datav, False, out_pathv)
-print('all good')
+    
+def main(): 
+    #####function:    
+    start = time.time()
+    model = Word2Vec.load_word2vec_format('/Users/liamconnell/GoogleNews-vectors-negative300.bin', binary = True)
+    lap1 = time.time()
+    print('data gathered: %s' % (lap1 - start))
 
+
+    index2word_set = set(model.index2word)
+    num_features = 300
+
+
+
+
+    prep_data(data, True, out_path)
+    print('training done, going to validation')
+    prep_data(datav, False, out_pathv)
+    print('all good')
+
+if __name__ == '__main__':
+    main()
 
 #theta = pd.read_csv('../input/qkeywd_theta_50-a_e-10.csv').as_matrix()
 #theta = np.identity(300) #* -1

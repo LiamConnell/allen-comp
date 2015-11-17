@@ -204,27 +204,33 @@ def word_clusters(row):
 #########################
 #########################
 
-data  = pd.read_csv('../input/training_set_(add_cols)n001.csv')
+def main():
+    data  = pd.read_csv('../input/training_set_(add_cols)n001.csv')
 
-data.qvec = data.qvec.apply(convert_back2arrays)
-data.tvec = data.tvec.apply(convert_back2arrays)
+    data.qvec = data.qvec.apply(convert_back2arrays)
+    data.tvec = data.tvec.apply(convert_back2arrays)
 
-isub = [len(data.tvec[i]) == 300 for i in data.index]
-data = data.iloc[isub]
-jsub = [len(data.qvec[i]) == 300 for i in data.index]
-data = data.iloc[jsub]
+    isub = [len(data.tvec[i]) == 300 for i in data.index]
+    data = data.iloc[isub]
+    jsub = [len(data.qvec[i]) == 300 for i in data.index]
+    data = data.iloc[jsub]
 
-qarray = np.array([data.qvec[i] for i in data.index])
-tarray = np.array([data.tvec[i] for i in data.index])
+    qarray = np.array([data.qvec[i] for i in data.index])
+    tarray = np.array([data.tvec[i] for i in data.index])
 
-net = buildNetwork(300, 3, 300)#, bias=True, hiddenclass=TanhLayer)
+    net = buildNetwork(300, 3, 300)#, bias=True, hiddenclass=TanhLayer)
 
-ds = SupervisedDataSet( 300, 300 )
-ds.setField( 'input', qarray )
-ds.setField( 'target', tarray )
+    ds = SupervisedDataSet( 300, 300 )
+    ds.setField( 'input', qarray )
+    ds.setField( 'target', tarray )
 
-trainer = BackpropTrainer( net, ds )
+    trainer = BackpropTrainer( net, ds )
 
-trainer.trainUntilConvergence( verbose = True, validationProportion = 0.05, maxEpochs = 500, continueEpochs = 10 )
+    trainer.trainUntilConvergence( verbose = True, validationProportion = 0.05, maxEpochs = 500, continueEpochs = 10 )
 
-NetworkWriter.writeToFile(net, '../input/NN(.05-500-10)_001.xml')
+    NetworkWriter.writeToFile(net, '../input/NN(.05-500-10)_001.xml')
+
+
+
+if __name__ == '__main__':
+    main()
